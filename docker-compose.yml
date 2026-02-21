@@ -1,0 +1,15 @@
+# Optional: local run with ngrok for webhook testing
+# 1. Run: ngrok http 8080
+# 2. Set WEBHOOK_URL=https://<ngrok-id>.ngrok.io/webhook, BOT_MODE=webhook
+# 3. docker compose up
+
+services:
+  bot:
+    build: .
+    env_file: .env
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - BOT_MODE=${BOT_MODE:-webhook}
+      - PORT=8080
+      - WEBHOOK_URL=${WEBHOOK_URL}

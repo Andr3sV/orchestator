@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orchestator"
+version = "0.1.0"
+description = "Multi-agent marketing team bot for Telegram with Opik observability"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "opik",
+    "langgraph",
+    "langchain",
+    "langchain-core",
+    "langchain-openai",
+    "langchain-community",
+    "python-telegram-bot>=21.0",
+    "google-auth",
+    "google-auth-oauthlib",
+    "google-api-python-client",
+    "pydantic-settings>=2.0",
+    "httpx",
+    "starlette",
+    "uvicorn[standard]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

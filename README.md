@@ -57,6 +57,7 @@ This sets `OPIK_API_KEY` (and optionally `OPIK_URL` for self-hosted). All LangGr
    ```
 
    A browser will open; sign in with your Google account and accept the Calendar and Gmail (send) permissions. The script will print a new `GOOGLE_REFRESH_TOKEN`. Copy it into `.env`. If you already had a token with only Calendar scope, run the script again to add Gmail send scope and update your token.
+
 6. Do not change `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET` after generating the token; if you do, run the script again to get a new refresh token.
 
 **If you see "invalid_grant" or "Bad Request"**: The refresh token is no longer valid (expired, revoked, or client ID/secret was changed). Fix any typo in Client ID/Secret, then run `python3 scripts/setup_calendar_oauth.py` again, complete the browser flow, and replace `GOOGLE_REFRESH_TOKEN` in `.env` with the new value. Restart the bot.

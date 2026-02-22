@@ -7,7 +7,7 @@ Multi-agent "marketing team" bot for Telegram: copywriting, strategy, and calend
 - **Copy**: Suggests email copy and marketing text from your brief.
 - **Strategy**: Helps with marketing strategy, channels, and campaigns.
 - **Calendar**: Checks your Google Calendar for today's agenda (or a given date).
-- **Email**: Sends email via Gmail. You ask to send an email (e.g. "envía un email a juan@gmail.com con asunto X diciendo que..."); the bot shows a summary and asks for confirmation before sending.
+- **Email**: Drafts and sends email via Gmail. The email agent suggests the content when you give only an idea (e.g. "recomiéndame un mensaje y envíalo a X"); you get a summary and confirm before sending.
 
 ## Requirements
 
@@ -101,7 +101,7 @@ Do not commit `.env`; use the platform's secret or env UI.
 
 - `src/main.py` – Entrypoint: build graph, start bot (polling or webhook).
 - `src/config.py` – Settings from env.
-- `src/graph/` – LangGraph orchestrator: router + copy, strategy, calendar nodes.
+- `src/graph/` – LangGraph orchestrator (planner, agents, synthesizer). Agent capabilities are declared in `src/graph/skills.py` (skills per node and tools).
 - `src/agents/` – LLM and prompts for each agent.
 - `src/bot/` – Telegram handlers and webhook server.
 - `src/calendar/` – Google Calendar auth and client.

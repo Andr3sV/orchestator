@@ -5,7 +5,7 @@ import re
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 
 from src.agents.llm import get_llm
-from src.agents.prompts import EMAIL_SYSTEM, EMAIL_SYSTEM_FROM_DRAFT_BODY
+from src.agents.prompt_loader import get_system_prompt
 from src.graph.state import GraphState, EmailDraft, get_recent_messages
 
 
@@ -101,7 +101,7 @@ def email_node(state: GraphState) -> dict:
                 "email_draft": draft,
             }
 
-    system = EMAIL_SYSTEM_FROM_DRAFT_BODY if (from_previous_agent and user_content) else EMAIL_SYSTEM
+    system = get_system_prompt("email_from_draft") if (from_previous_agent and user_content) else get_system_prompt("email")
     llm = get_llm()
     response = llm.invoke([
         SystemMessage(content=system),

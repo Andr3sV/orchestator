@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 
 from src.agents.llm import get_llm
-from src.agents.prompts import CALENDAR_SYSTEM
+from src.agents.prompt_loader import get_system_prompt
 from src.config import get_settings
 from src.graph.state import GraphState
 from src.graph.nodes.calendar_date_resolver import (
@@ -55,7 +55,7 @@ def calendar_node(state: GraphState) -> dict:
     llm = get_llm()
     prompt = f"User asked: {user_content}\n\nRequested period: {period_label}\n\nEvents:\n{events_text}"
     messages = [
-        SystemMessage(content=CALENDAR_SYSTEM),
+        SystemMessage(content=get_system_prompt("calendar")),
         HumanMessage(content=prompt),
     ]
     response = llm.invoke(messages)

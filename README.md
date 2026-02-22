@@ -108,10 +108,25 @@ Do not commit `.env`; use the platform's secret or env UI.
 - `src/calendar/` – Google Calendar auth and client.
 - `src/gmail/` – Gmail send (uses same OAuth as Calendar).
 - `scripts/setup_calendar_oauth.py` – One-time OAuth to get Google tokens (Calendar + Gmail send).
+- `scripts/seed_opik_prompts.py` – One-time seed of agent prompts into Opik's prompt library (see [Prompt management (Opik)](#prompt-management-opik)).
+
+## Prompt management (Opik)
+
+When `OPIK_API_KEY` is set, the app loads agent system prompts from Opik's prompt library (with in-memory cache). If Opik is not configured or a fetch fails, it falls back to the defaults in `src/agents/prompts.py`.
+
+**One-time seed (recommended):** From the repo root with Opik configured, run:
+
+```bash
+python3 scripts/seed_opik_prompts.py
+```
+
+This creates or updates 7 Text prompts in Opik with names `orchestrator-planner`, `orchestrator-copy`, `orchestrator-strategy`, `orchestrator-calendar`, `orchestrator-email`, `orchestrator-email-from-draft`, and `orchestrator-synthesizer`. You can then edit any prompt in the Opik UI (Prompt library → click the prompt → Edit). Changes take effect after the app restarts (prompts are cached for the process lifetime).
+
+**Manual option:** Create Text prompts in the Opik Prompt library with the exact names above and paste the matching content from `src/agents/prompts.py`.
 
 ## Next steps with Opik
 
 - **Datasets**: In the Opik UI, create datasets for "copy" (input: brief, output: criteria for good copy) and "strategy" (input: marketing question, output: criteria for a good answer). Optionally run the graph over dataset items and log results as experiments.
 - **Metrics**: Use built-in metrics (Answer Relevance, G-Eval, Usefulness, etc.) on those experiments. For the calendar agent, evaluate tool correctness and trajectory (e.g. that the correct date was queried).
-- **Prompt management**: Store the agent system prompts from `src/agents/prompts.py` in Opik's prompt library; vary versions from Opik for A/B or use the Agent Optimizer (MetaPrompt/HRPO) to improve prompts against your datasets.
+- **Prompt versions**: Use Opik's prompt versioning and tags (e.g. "production") or commit IDs for A/B tests and rollbacks.
 - **Production**: Use Opik's online evaluation rules, dashboards, and alerts to monitor quality and errors in production.

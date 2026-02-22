@@ -3,7 +3,7 @@
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from src.agents.llm import get_llm
-from src.agents.prompts import SYNTHESIZER_SYSTEM
+from src.agents.prompt_loader import get_system_prompt
 from src.graph.state import GraphState
 
 
@@ -39,7 +39,7 @@ def synthesizer_node(state: GraphState) -> dict:
     synthesis_input = _build_synthesis_input(state)
     llm = get_llm()
     response = llm.invoke([
-        SystemMessage(content=SYNTHESIZER_SYSTEM),
+        SystemMessage(content=get_system_prompt("synthesizer")),
         HumanMessage(content=synthesis_input),
     ])
     content = (response.content or "").strip() or "No pude generar una respuesta. Intenta de nuevo."

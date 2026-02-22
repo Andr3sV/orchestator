@@ -22,6 +22,8 @@ class GraphState(TypedDict):
 
     messages: Annotated[list[BaseMessage], add_messages]
     route: RouteKind | None
+    plan: list[RouteKind] | None
+    plan_index: int | None
     calendar_events: list[dict] | None
     email_draft: EmailDraft | None
 
@@ -33,6 +35,8 @@ def create_initial_state(user_message: str) -> GraphState:
     return GraphState(
         messages=[HumanMessage(content=user_message)],
         route=None,
+        plan=None,
+        plan_index=None,
         calendar_events=None,
         email_draft=None,
     )

@@ -5,7 +5,7 @@ import re
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 
 from src.agents.llm import get_llm
-from src.agents.prompts import EMAIL_SYSTEM
+from src.agents.prompts import EMAIL_SYSTEM, EMAIL_SYSTEM_FROM_DRAFT_BODY
 from src.graph.state import GraphState, EmailDraft
 
 
@@ -46,7 +46,7 @@ def _make_summary_message(draft: EmailDraft, lang: str = "es") -> str:
 
 
 def email_node(state: GraphState) -> dict:
-    """Extract or draft email fields from user message; return summary + email_draft."""
+    """Extract or draft email fields from user message or from previous agent output (e.g. copy) as body."""
     messages = state.get("messages") or []
     if not messages:
         return {
@@ -54,14 +54,29 @@ def email_node(state: GraphState) -> dict:
             "email_draft": None,
         }
     last = messages[-1]
+    # If last message is from another agent (e.g. copy), use it as email body and only extract to/subject
+    from_previous_agent = isinstance(last, AIMessage)
     user_content = getattr(last, "content", None) or ""
     if isinstance(user_content, list):
         user_content = str(user_content)
 
+    original_request = ""
+    for m in messages:
+        if not isinstance(m, AIMessage) and getattr(m, "content", None):
+            original_request = str(m.content).strip()
+            break
+
+    if from_previous_agent and user_content:
+        system = EMAIL_SYSTEM_FROM_DRAFT_BODY
+        prompt = f"Original user request: {original_request}\n\nBody to use as email body:\n{user_content}"
+    else:
+        system = EMAIL_SYSTEM
+        prompt = user_content
+
     llm = get_llm()
     response = llm.invoke([
-        SystemMessage(content=EMAIL_SYSTEM),
-        HumanMessage(content=user_content),
+        SystemMessage(content=system),
+        HumanMessage(content=prompt),
     ])
     raw = (response.content or "").strip()
     draft = _parse_llm_email_response(raw)
@@ -77,8 +92,9 @@ def email_node(state: GraphState) -> dict:
             "email_draft": None,
         }
 
-    # Detect language from user message for summary
-    lang = "es" if any(c in "áéíóúñ¿¡" for c in user_content.lower()) or "envía" in user_content.lower() or "mandar" in user_content.lower() else "en"
+    # Detect language for summary (prefer original user request)
+    lang_ref = original_request or user_content
+    lang = "es" if any(c in "áéíóúñ¿¡" for c in (lang_ref or "").lower()) or "envía" in (lang_ref or "").lower() or "mandar" in (lang_ref or "").lower() else "en"
     summary = _make_summary_message(draft, lang)
     return {
         "messages": [AIMessage(content=summary)],

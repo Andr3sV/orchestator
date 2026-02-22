@@ -26,6 +26,17 @@ def _parse_llm_email_response(content: str) -> EmailDraft | None:
     return EmailDraft(to=to_val, subject=subject_val, body=body_val)
 
 
+EMAIL_REGEX = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+
+
+def _extract_email_from_text(text: str) -> str | None:
+    """Return the first email address in text, or None."""
+    if not text or not isinstance(text, str):
+        return None
+    m = EMAIL_REGEX.search(text)
+    return m.group(0).strip() if m else None
+
+
 def _make_summary_message(draft: EmailDraft, lang: str = "es") -> str:
     """Build user-friendly summary for Telegram with confirm prompt."""
     if lang == "es":
@@ -65,6 +76,30 @@ def email_node(state: GraphState) -> dict:
         if not isinstance(m, AIMessage) and getattr(m, "content", None):
             original_request = str(m.content).strip()
             break
+
+    # Deterministic rule: last message is Human and contains an email, and we have a previous draft -> change only To
+    prev_draft = state.get("email_draft") if isinstance(state.get("email_draft"), dict) else None
+    if (
+        isinstance(last, HumanMessage)
+        and prev_draft
+        and prev_draft.get("to")
+        and prev_draft.get("subject") is not None
+        and prev_draft.get("body") is not None
+    ):
+        new_to = _extract_email_from_text(user_content)
+        if new_to and new_to != prev_draft.get("to"):
+            draft = EmailDraft(
+                to=new_to,
+                subject=prev_draft.get("subject") or "(Sin asunto)",
+                body=prev_draft.get("body") or "",
+            )
+            lang_ref = original_request or user_content
+            lang = "es" if any(c in "áéíóúñ¿¡" for c in (lang_ref or "").lower()) or "envía" in (lang_ref or "").lower() or "mandar" in (lang_ref or "").lower() else "en"
+            summary = _make_summary_message(draft, lang)
+            return {
+                "messages": [AIMessage(content=summary)],
+                "email_draft": draft,
+            }
 
     system = EMAIL_SYSTEM_FROM_DRAFT_BODY if (from_previous_agent and user_content) else EMAIL_SYSTEM
     llm = get_llm()

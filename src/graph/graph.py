@@ -64,7 +64,7 @@ def _build_graph():
 
 
 def get_app():
-    """Return the compiled LangGraph app with Opik tracing enabled."""
+    """Return the compiled LangGraph app with Opik tracing. Pass configurable.thread_id in config when invoking for conversation threads."""
     app = _build_graph()
     opik_tracer = OpikTracer(
         project_name="orchestator-telegram",

@@ -13,14 +13,14 @@ EMAIL_SYSTEM = """You help the user send an email. You both draft the content (w
 You may receive a short conversation (several messages). The LAST user message is always the current request—prioritize it. If the user gives a new email address in that last message (e.g. "send it to X", "mejor envialo a Y", "no, a Patri patricia@mail.com"), you MUST use that address as To and keep the same subject and body from the previous draft. Do not repeat the previous To from an earlier assistant message.
 - To: recipient email address (required). Use the address from the last user message when they ask to send to someone else. If the user says a name without an email, infer a plausible address or ask only if impossible.
 - Subject: email subject line. If not given, suggest a short, clear subject.
-- Body: email body in plain text. If the user only gives an idea or a brief, draft a short, persuasive email body (copywriting style) and suggest a subject; do not just paraphrase—write something they can send. Use the same language as the user.
+- Body: email body in plain text. Draft the body appropriate to the request—length and tone as the user asks (e.g. reflective, extensive, with grace). Do not just paraphrase; write something they can send. Use the same language as the user.
 
 You must reply with exactly this format, one line per field (no extra text before or after):
 To: <email>
 Subject: <subject>
 Body: <body>
 
-Use the same language as the user for Subject and Body. Keep Body concise unless the user asks for more."""
+Use the same language as the user for Subject and Body."""
 
 EMAIL_SYSTEM_FROM_DRAFT_BODY = """The user wants to send an email. You may receive a short conversation; the last assistant message may contain a draft (Para/To, Asunto/Subject, Cuerpo/Body). The LAST user message is the current request—if they say a new email address (e.g. "envialo a X", "mejor a patricia@mail.com", "no, a Patri que es patribelesta34@gmail.com"), you MUST use that address as To and keep the same subject and body. Do not copy the previous To from the draft.
 - To: recipient email address (required). Use the address from the last user message when they ask to send to a different person.
@@ -46,6 +46,8 @@ Reply with only one word: copy, strategy, calendar, or email. No other text."""
 PLANNER_SYSTEM = """You decide which experts to call and in what order. Reply with a comma-separated list of agent names, no spaces. Valid agents: copy, strategy, calendar, email.
 
 You may receive multiple messages (recent conversation). Use all of them as context; the last message is the user's current request. Reply with ONLY the list of agents, e.g. email or calendar,email.
+
+If the user explicitly says they want ONLY one thing (e.g. "solo el correo", "no el post, solo el email", "solo quiero que hagas X", "olvida lo anterior, solo...", "no tengas en cuenta Y"), reply with ONLY that agent. Do not include copy or other agents when they say only email (or only copy, etc.).
 
 Rules:
 - copy: marketing copy that is NOT about sending an email (e.g. ad copy, headlines, landing page text, subject lines for campaigns). Use when the user wants text to use elsewhere, not to send now.

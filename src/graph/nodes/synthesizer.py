@@ -8,12 +8,28 @@ from src.graph.state import GraphState
 
 
 def _build_synthesis_input(state: GraphState) -> str:
-    """Build a single text summary of agent outputs for the synthesizer LLM."""
-    parts = []
+    """Build a single text summary of agent outputs for the synthesizer LLM (current turn only)."""
     messages = state.get("messages") or []
-    for m in messages:
-        if isinstance(m, AIMessage) and m.content:
-            parts.append(str(m.content).strip())
+
+    # Last user message index: so we use current request and only current-turn agent outputs
+    last_user_idx = -1
+    for i in range(len(messages) - 1, -1, -1):
+        m = messages[i]
+        if hasattr(m, "content") and m.content and not isinstance(m, AIMessage):
+            last_user_idx = i
+            break
+    user_msg = (
+        str(messages[last_user_idx].content).strip()
+        if last_user_idx >= 0 and hasattr(messages[last_user_idx], "content")
+        else ""
+    )
+
+    # Only AIMessages after the last user message (current turn outputs)
+    parts = [
+        str(m.content).strip()
+        for m in messages[last_user_idx + 1 :]
+        if isinstance(m, AIMessage) and m.content
+    ]
     if state.get("calendar_events"):
         events = state["calendar_events"]
         lines = [f"- {e.get('start', '?')}–{e.get('end', '?')}: {e.get('summary', 'No title')}" for e in events]
@@ -23,11 +39,6 @@ def _build_synthesis_input(state: GraphState) -> str:
         parts.append(
             f"Email draft to confirm: To={draft.get('to')}, Subject={draft.get('subject')}, Body={draft.get('body', '')}"
         )
-    user_msg = ""
-    for m in messages:
-        if hasattr(m, "content") and m.content and not isinstance(m, AIMessage):
-            user_msg = str(m.content).strip()
-            break
     base = "User asked: " + (user_msg or "(no message)")
     if not parts:
         return base

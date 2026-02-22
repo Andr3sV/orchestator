@@ -32,8 +32,8 @@ def test_planner_calendar_like_message():
 
 
 def test_planner_copy_like_message():
-    """Messages about writing copy should plan copy."""
-    state = create_initial_state("Write a short email for a product launch")
+    """Messages about marketing copy (not sending email) should plan copy."""
+    state = create_initial_state("Write a headline for a Facebook ad for our product launch")
     out = planner_node(state)
     assert "copy" in out["plan"]
 
@@ -43,3 +43,23 @@ def test_planner_strategy_like_message():
     state = create_initial_state("How should I market on LinkedIn?")
     out = planner_node(state)
     assert "strategy" in out["plan"]
+
+
+def test_planner_draft_and_send_email_uses_email_only():
+    """Draft and send email should plan email only (not copy,email); email agent drafts and sends."""
+    state = create_initial_state(
+        "Recomiéndame un mensaje para enviar a juan@gmail.com diciendo que llegaremos mañana"
+    )
+    out = planner_node(state)
+    assert "email" in out["plan"]
+    assert "copy" not in out["plan"]
+
+
+def test_planner_use_calendar_to_write_email_plans_calendar_and_email():
+    """When user asks to use calendar to write/send an email, plan must include calendar and email."""
+    state = create_initial_state(
+        "usa mi calendario para escribir un email a josep diciendole que haré mañana"
+    )
+    out = planner_node(state)
+    assert "calendar" in out["plan"]
+    assert "email" in out["plan"]

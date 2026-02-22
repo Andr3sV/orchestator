@@ -1,9 +1,14 @@
 """Google OAuth2 auth: load credentials from env or token file."""
 
+import logging
+
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
+from google.auth.exceptions import RefreshError
 
 from src.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_credentials() -> Credentials | None:
@@ -25,9 +30,19 @@ def get_credentials() -> Credentials | None:
             token_uri="https://oauth2.googleapis.com/token",
             client_id=s.google_client_id,
             client_secret=s.google_client_secret,
-            scopes=["https://www.googleapis.com/auth/calendar.events.readonly"],
+            scopes=[
+                "https://www.googleapis.com/auth/calendar.events.readonly",
+                "https://www.googleapis.com/auth/gmail.send",
+            ],
         )
-        creds.refresh(Request())
+        try:
+            creds.refresh(Request())
+        except RefreshError:
+            logger.warning(
+                "Google Calendar: refresh token invalid or expired. "
+                "Re-run: python3 scripts/setup_calendar_oauth.py"
+            )
+            return None
         return creds
     if s.google_access_token:
         return Credentials(
@@ -36,6 +51,9 @@ def get_credentials() -> Credentials | None:
             token_uri="https://oauth2.googleapis.com/token",
             client_id=s.google_client_id,
             client_secret=s.google_client_secret,
-            scopes=["https://www.googleapis.com/auth/calendar.events.readonly"],
+            scopes=[
+                "https://www.googleapis.com/auth/calendar.events.readonly",
+                "https://www.googleapis.com/auth/gmail.send",
+            ],
         )
     return None

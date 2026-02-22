@@ -5,7 +5,7 @@ from src.agents.prompts import ROUTER_SYSTEM
 from src.graph.state import GraphState, RouteKind
 from langchain_core.messages import SystemMessage
 
-ROUTE_VALUES: list[RouteKind] = ["copy", "strategy", "calendar"]
+ROUTE_VALUES: list[RouteKind] = ["copy", "strategy", "calendar", "email"]
 
 
 def router_node(state: GraphState) -> dict:

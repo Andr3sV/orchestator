@@ -61,6 +61,23 @@ def get_events(date_str: str) -> list[dict]:
     return get_events_range(start, end, tz)
 
 
+def get_events_for_range(start_date_str: str, end_date_str: str) -> list[dict]:
+    """
+    Return events between start_date and end_date (inclusive).
+    Dates in YYYY-MM-DD format; uses configured timezone.
+    """
+    s = get_settings()
+    tz = ZoneInfo(s.google_timezone)
+    try:
+        start_d = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        end_d = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return []
+    time_min = datetime.combine(start_d, datetime.min.time(), tzinfo=tz)
+    time_max = datetime.combine(end_d, datetime.min.time(), tzinfo=tz) + timedelta(days=1)
+    return get_events_range(time_min, time_max, tz)
+
+
 def get_events_range(
     time_min: datetime,
     time_max: datetime,

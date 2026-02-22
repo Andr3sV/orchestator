@@ -7,6 +7,7 @@ Multi-agent "marketing team" bot for Telegram: copywriting, strategy, and calend
 - **Copy**: Suggests email copy and marketing text from your brief.
 - **Strategy**: Helps with marketing strategy, channels, and campaigns.
 - **Calendar**: Checks your Google Calendar for today's agenda (or a given date).
+- **Email**: Sends email via Gmail. You ask to send an email (e.g. "envía un email a juan@gmail.com con asunto X diciendo que..."); the bot shows a summary and asks for confirmation before sending.
 
 ## Requirements
 
@@ -41,18 +42,24 @@ opik configure
 
 This sets `OPIK_API_KEY` (and optionally `OPIK_URL` for self-hosted). All LangGraph runs are traced to Opik automatically.
 
-### 4. Google Calendar (for calendar agent)
+### 4. Google Calendar and Gmail (for calendar and email agents)
 
 1. Create a project in [Google Cloud Console](https://console.cloud.google.com/).
-2. Enable the **Google Calendar API**.
-3. Create OAuth 2.0 credentials (Desktop app).
-4. Run the one-time OAuth script to get tokens:
+2. Enable the **Google Calendar API** and the **Gmail API**.
+3. Create OAuth 2.0 credentials:
+   - **Desktop app**: no extra config.
+   - **Web application**: in "Authorized redirect URIs" add exactly `http://localhost:8080/` and save.
+4. In `.env` set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (copy from the console; check for typos, e.g. letter `l` vs digit `1`).
+5. From the project root with venv activated, run:
 
    ```bash
-   python scripts/setup_calendar_oauth.py
+   python3 scripts/setup_calendar_oauth.py
    ```
 
-5. Put `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REFRESH_TOKEN` in `.env`.
+   A browser will open; sign in with your Google account and accept the Calendar and Gmail (send) permissions. The script will print a new `GOOGLE_REFRESH_TOKEN`. Copy it into `.env`. If you already had a token with only Calendar scope, run the script again to add Gmail send scope and update your token.
+6. Do not change `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET` after generating the token; if you do, run the script again to get a new refresh token.
+
+**If you see "invalid_grant" or "Bad Request"**: The refresh token is no longer valid (expired, revoked, or client ID/secret was changed). Fix any typo in Client ID/Secret, then run `python3 scripts/setup_calendar_oauth.py` again, complete the browser flow, and replace `GOOGLE_REFRESH_TOKEN` in `.env` with the new value. Restart the bot.
 
 ## Run locally (polling)
 
@@ -98,7 +105,8 @@ Do not commit `.env`; use the platform's secret or env UI.
 - `src/agents/` – LLM and prompts for each agent.
 - `src/bot/` – Telegram handlers and webhook server.
 - `src/calendar/` – Google Calendar auth and client.
-- `scripts/setup_calendar_oauth.py` – One-time OAuth to get Google tokens.
+- `src/gmail/` – Gmail send (uses same OAuth as Calendar).
+- `scripts/setup_calendar_oauth.py` – One-time OAuth to get Google tokens (Calendar + Gmail send).
 
 ## Next steps with Opik
 

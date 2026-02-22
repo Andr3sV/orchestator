@@ -8,6 +8,7 @@ from src.graph.nodes.router import router_node
 from src.graph.nodes.copy import copy_node
 from src.graph.nodes.strategy import strategy_node
 from src.graph.nodes.calendar import calendar_node
+from src.graph.nodes.email import email_node
 
 
 def _build_graph():
@@ -16,6 +17,7 @@ def _build_graph():
     workflow.add_node("copy", copy_node)
     workflow.add_node("strategy", strategy_node)
     workflow.add_node("calendar", calendar_node)
+    workflow.add_node("email", email_node)
 
     workflow.add_edge(START, "router")
 
@@ -26,11 +28,12 @@ def _build_graph():
     workflow.add_conditional_edges(
         "router",
         route_after_router,
-        {"copy": "copy", "strategy": "strategy", "calendar": "calendar"},
+        {"copy": "copy", "strategy": "strategy", "calendar": "calendar", "email": "email"},
     )
     workflow.add_edge("copy", END)
     workflow.add_edge("strategy", END)
     workflow.add_edge("calendar", END)
+    workflow.add_edge("email", END)
 
     return workflow.compile()
 

@@ -18,7 +18,8 @@ def test_graph_invoke_calendar():
     from src.graph.graph import get_app
     app = get_app()
     state = create_initial_state("What do I have today?")
-    result = app.invoke(state)
+    config = {"configurable": {"thread_id": "test-graph-invoke-calendar"}}
+    result = app.invoke(state, config=config)
     assert "messages" in result
     assert len(result["messages"]) >= 2  # user + assistant
     last = result["messages"][-1]

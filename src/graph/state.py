@@ -28,6 +28,19 @@ class GraphState(TypedDict):
     email_draft: EmailDraft | None
 
 
+MAX_CONTEXT_MESSAGES = 10
+
+
+def get_recent_messages(
+    messages: list[BaseMessage],
+    max_n: int = MAX_CONTEXT_MESSAGES,
+) -> list[BaseMessage]:
+    """Return the most recent max_n messages for context. Same list if len <= max_n."""
+    if len(messages) <= max_n:
+        return messages
+    return list(messages[-max_n:])
+
+
 def create_initial_state(user_message: str) -> GraphState:
     """Build initial state from the user's text message."""
     from langchain_core.messages import HumanMessage

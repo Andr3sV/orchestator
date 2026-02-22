@@ -3,12 +3,13 @@
 import asyncio
 import logging
 import unicodedata
+from datetime import datetime, timezone
 
 from telegram import Update
 from telegram.ext import ContextTypes
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
-from src.graph.state import create_initial_state, EmailDraft
+from src.graph.state import EmailDraft
 from src.graph.graph import get_app
 
 logger = logging.getLogger(__name__)
@@ -83,12 +84,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # Not confirmation: cancel draft and continue to graph
         del pending_email_drafts[chat_id]
 
-    # 2) Invoke graph
+    # 2) Invoke graph (thread_id = chat:date for 24h conversation window)
     try:
-        state = create_initial_state(text)
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        thread_id = f"{chat_id}:{date_str}"
+        config = {
+            "configurable": {"thread_id": thread_id},
+            "metadata": {"telegram_chat_id": str(chat_id)},
+        }
         app = get_app()
         result = await asyncio.to_thread(
-            app.invoke, state, config={"metadata": {"telegram_chat_id": str(chat_id)}}
+            app.invoke,
+            {"messages": [HumanMessage(content=text)]},
+            config=config,
         )
         messages = result.get("messages", [])
         last = None

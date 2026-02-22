@@ -1,12 +1,13 @@
-"""Tests for planner node (plan = list of agents)."""
+"""Tests for planner node (plan = list of agents) and email node context."""
 
 import os
 
 import pytest
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 
 from src.graph.state import GraphState, create_initial_state
 from src.graph.nodes.router import planner_node, ROUTE_VALUES
+from src.graph.nodes.email import email_node
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("OPENAI_API_KEY"),
@@ -63,3 +64,50 @@ def test_planner_use_calendar_to_write_email_plans_calendar_and_email():
     out = planner_node(state)
     assert "calendar" in out["plan"]
     assert "email" in out["plan"]
+
+
+def test_planner_follow_up_envialo_a_plans_email():
+    """When user says 'envialo a X' after a draft, planner should include email (conversation context)."""
+    draft_summary = (
+        "**Para:** old@example.com\n**Asunto:** Agenda\n**Cuerpo:**\nHola.\n\nResponde 'sí' para enviar."
+    )
+    state = GraphState(
+        messages=[
+            HumanMessage(content="envía un email a old@example.com con asunto Agenda diciendo Hola"),
+            AIMessage(content=draft_summary),
+            HumanMessage(content="envialo a other@example.com"),
+        ],
+        route=None,
+        plan=None,
+        plan_index=None,
+        calendar_events=None,
+        email_draft=None,
+    )
+    out = planner_node(state)
+    assert "email" in out["plan"]
+
+
+def test_email_follow_up_envialo_a_reuses_draft():
+    """When user says 'envialo a X' after a draft, email node should return draft with new to, same subject/body."""
+    draft_summary = (
+        "Voy a enviar este email:\n\n**Para:** old@example.com\n**Asunto:** Agenda de mañana\n"
+        "**Cuerpo:**\nMañana tengo reunión.\n\nResponde 'sí' o 'confirmo' para enviar."
+    )
+    state = GraphState(
+        messages=[
+            HumanMessage(content="usa mi calendario para escribir un email a old@example.com"),
+            AIMessage(content="(calendar output)"),
+            AIMessage(content=draft_summary),
+            HumanMessage(content="envialo a other@example.com"),
+        ],
+        route=None,
+        plan=None,
+        plan_index=None,
+        calendar_events=None,
+        email_draft=None,
+    )
+    out = email_node(state)
+    assert "email_draft" in out and out["email_draft"] is not None
+    assert out["email_draft"]["to"] == "other@example.com"
+    assert out["email_draft"]["subject"] == "Agenda de mañana"
+    assert "reunión" in out["email_draft"]["body"] or "Mañana" in out["email_draft"]["body"]

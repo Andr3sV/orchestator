@@ -1,6 +1,7 @@
 """LangGraph orchestrator: planner → agents (as nodes) → advance_plan → synthesizer, with Opik tracing."""
 
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import MemorySaver
 from opik.integrations.langchain import OpikTracer, track_langgraph
 
 from src.graph.state import GraphState
@@ -11,6 +12,8 @@ from src.graph.nodes.calendar import calendar_node
 from src.graph.nodes.email import email_node
 from src.graph.nodes.advance_plan import advance_plan_node
 from src.graph.nodes.synthesizer import synthesizer_node
+
+_checkpointer = MemorySaver()
 
 AGENT_PATH_MAP: dict[str, str] = {
     "copy": "copy",
@@ -57,7 +60,7 @@ def _build_graph():
     workflow.add_conditional_edges("advance_plan", _route_after_advance_plan, AGENT_PATH_MAP)
     workflow.add_edge("synthesizer", END)
 
-    return workflow.compile()
+    return workflow.compile(checkpointer=_checkpointer)
 
 
 def get_app():

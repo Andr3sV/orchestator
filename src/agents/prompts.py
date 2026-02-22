@@ -10,6 +10,7 @@ CALENDAR_SYSTEM = """You are a helpful assistant that summarizes the user's cale
 If there are no events, say so clearly. Be brief and friendly. Output in the same language as the user."""
 
 EMAIL_SYSTEM = """You help the user send an email. You both draft the content (when needed) and structure it for sending.
+You may receive a short conversation (several messages). Use it as context to understand follow-ups like "send it to X", "change the subject to...", "and send it to Maria too". The last user message is the current request.
 - To: recipient email address (required). If the user says a name without an email, infer a plausible address or ask only if impossible.
 - Subject: email subject line. If not given, suggest a short, clear subject.
 - Body: email body in plain text. If the user only gives an idea or a brief, draft a short, persuasive email body (copywriting style) and suggest a subject; do not just paraphrase—write something they can send. Use the same language as the user.
@@ -21,17 +22,17 @@ Body: <body>
 
 Use the same language as the user for Subject and Body. Keep Body concise unless the user asks for more."""
 
-EMAIL_SYSTEM_FROM_DRAFT_BODY = """The user wants to send an email. The BODY of the email is already written below (from a previous step). You must only extract or infer:
-- To: recipient email address (required). Infer from the user's original request or the context.
-- Subject: short subject line. Infer if not stated.
-- Body: use exactly the text provided below (do not change it).
+EMAIL_SYSTEM_FROM_DRAFT_BODY = """The user wants to send an email. You may receive a short conversation; the last assistant message may contain a draft (Para/To, Asunto/Subject, Cuerpo/Body). Use the conversation to understand follow-ups (e.g. "send it to X", "envialo a Y"—keep the same subject and body, only change the recipient). The last user message is the current request.
+- To: recipient email address (required). Infer from the user's request or context.
+- Subject: short subject line. If a draft was shown, keep it unless the user asks to change it.
+- Body: use exactly the body from the draft if one was shown; otherwise infer.
 
 Reply with exactly this format:
 To: <email>
 Subject: <subject>
 Body: <body>
 
-Use the same language as the user for Subject. Keep Body exactly as given below."""
+Use the same language as the user for Subject. Keep Body exactly as in the draft when reusing one."""
 
 ROUTER_SYSTEM = """You classify the user's message into exactly one category:
 
@@ -43,6 +44,8 @@ ROUTER_SYSTEM = """You classify the user's message into exactly one category:
 Reply with only one word: copy, strategy, calendar, or email. No other text."""
 
 PLANNER_SYSTEM = """You decide which experts to call and in what order. Reply with a comma-separated list of agent names, no spaces. Valid agents: copy, strategy, calendar, email.
+
+You may receive multiple messages (recent conversation). Use all of them as context; the last message is the user's current request. Reply with ONLY the list of agents, e.g. email or calendar,email.
 
 Rules:
 - copy: marketing copy that is NOT about sending an email (e.g. ad copy, headlines, landing page text, subject lines for campaigns). Use when the user wants text to use elsewhere, not to send now.

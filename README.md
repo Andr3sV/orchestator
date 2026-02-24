@@ -109,6 +109,8 @@ Do not commit `.env`; use the platform's secret or env UI.
 - `src/gmail/` – Gmail send (uses same OAuth as Calendar).
 - `scripts/setup_calendar_oauth.py` – One-time OAuth to get Google tokens (Calendar + Gmail send).
 - `scripts/seed_opik_prompts.py` – One-time seed of agent prompts into Opik's prompt library (see [Prompt management (Opik)](#prompt-management-opik)).
+- `scripts/seed_opik_dataset.py` – One-time seed of the evaluation dataset into Opik (see [data/README.md](data/README.md)).
+- `scripts/run_eval_experiment.py` – Run an Opik evaluation experiment over the orchestrator-eval dataset.
 
 ## Prompt management (Opik)
 
@@ -126,7 +128,7 @@ This creates or updates 7 Text prompts in Opik with names `orchestrator-planner`
 
 ## Next steps with Opik
 
-- **Datasets**: In the Opik UI, create datasets for "copy" (input: brief, output: criteria for good copy) and "strategy" (input: marketing question, output: criteria for a good answer). Optionally run the graph over dataset items and log results as experiments.
+- **Datasets**: A ready-made evaluation dataset is in [data/eval_dataset.json](data/eval_dataset.json). Upload it to Opik with `python3 scripts/seed_opik_dataset.py` (run once with `OPIK_API_KEY` set). To run an evaluation experiment, use `python3 scripts/run_eval_experiment.py` (see [data/README.md](data/README.md#running-an-evaluation-experiment)).
 - **Metrics**: Use built-in metrics (Answer Relevance, G-Eval, Usefulness, etc.) on those experiments. For the calendar agent, evaluate tool correctness and trajectory (e.g. that the correct date was queried).
 - **Prompt versions**: Use Opik's prompt versioning and tags (e.g. "production") or commit IDs for A/B tests and rollbacks.
 - **Production**: Use Opik's online evaluation rules, dashboards, and alerts to monitor quality and errors in production.
